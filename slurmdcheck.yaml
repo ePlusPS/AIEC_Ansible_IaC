@@ -1,22 +1,39 @@
 ---
+# This playbook verifies the status of the Slurmd service on Ubuntu hosts.
 - name: Verify Slurmd Service on Ubuntu
+  # Specifies the target hosts for this play.
   hosts: linux
+  # Enables privilege escalation (become root) for tasks that require it.
   become: true
+  # Disables gathering facts about the hosts, which can speed up execution if facts are not needed.
   gather_facts: false
 
+  # Defines the list of tasks to be executed on the target hosts.
   tasks:
+    # Task to check the status of the 'slurmd' service using the systemd module.
     - name: Check Slurmd Service Status
       ansible.builtin.systemd:
+        # Specifies the name of the service to manage.
         name: slurmd
-        state: started  # Check if the service is running
-      register: slurmd_status  # Store the result in a variable
+        # Checks if the service is running. If not, it will attempt to start it (or report changed=true if already running).
+        state: started
+      # Registers the output of the systemd module into a variable named 'slurmd_status'.
+      register: slurmd_status
 
+    # Task to display the status of the Slurmd service using the debug module.
     - name: Display Slurmd Status
       ansible.builtin.debug:
+        # Defines the message to display, including the active status from the registered variable.
         msg: "Slurmd service is {{ slurmd_status.status.active }}"
-      when: slurmd_status.changed == false # only show if status check did not change anything
+      # This task only runs if the previous task (checking status) did not make any changes.
+      # This typically means the service was already in the 'started' state.
+      when: slurmd_status.changed == false
 
+    # Task to fail the playbook execution if the Slurmd service is not reported as 'active'.
     - name: Fail if Slurmd is not running
       ansible.builtin.fail:
+        # Defines the error message to display if the task fails.
         msg: "Slurmd service is not running!"
-      when: slurmd_status.status.active != "active" # changed to use the registered variable
+      # This task only runs if the 'active' status from the registered variable is not equal to "active".
+      # This means the service is not running as expected.
+      when: slurmd_status.status.active != "active"
