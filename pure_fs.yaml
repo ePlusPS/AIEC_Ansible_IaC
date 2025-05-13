@@ -1,19 +1,20 @@
 ---
-- name: Create a Filesystem on Pure Storage FlashBlade
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Create a new filesystem
-      purestorage.flashblade.purefb_fs:
-        name: "{{ filesystem_name }}"
-        size: "{{ filesystem_size }}"
-        fb_url: "{{ pure_fb_url }}"
-        api_token: "{{ api_token }}"  # Variable from inventory
-        state: present
-        hard_limit: true
-        nfs_rules:
-          - access: 'rw'
-            client: '192.168.1.0/24'
-            permission: 'root-squash'
-        snapshot: true
-        fastremove: true
+- name: Create a Filesystem on Pure Storage FlashBlade # This playbook creates a filesystem on a Pure Storage FlashBlade array.
+  hosts: localhost # Specifies that this playbook should run on the control machine itself (localhost).
+  gather_facts: false # Disables gathering facts about the localhost, as they are not needed for this task.
+
+  tasks: # Defines the list of tasks to be executed.
+    - name: Create a new filesystem # Task to create a new filesystem using the purefb_fs module.
+      purestorage.flashblade.purefb_fs: # Uses the specific module for managing FlashBlade filesystems.
+        name: "{{ filesystem_name }}" # Sets the name of the filesystem using a variable from inventory or elsewhere.
+        size: "{{ filesystem_size }}" # Sets the size of the filesystem using a variable.
+        fb_url: "{{ pure_fb_url }}" # Specifies the URL or IP address of the FlashBlade array, using a variable.
+        api_token: "{{ api_token }}"  # Variable from inventory # Provides the API token for authentication, typically stored securely in inventory or a vault.
+        state: present # Ensures the filesystem exists. If it doesn't, it will be created.
+        hard_limit: true # Configures the filesystem with a hard size limit.
+        nfs_rules: # Defines a list of NFS access rules for the filesystem.
+          - access: 'rw' # Defines a single NFS rule. Grants read/write access.
+            client: '192.168.1.0/24' # Specifies the client network that this rule applies to.
+            permission: 'root-squash' # Maps root user from client to anonymous user on the array.
+        snapshot: true # Enables snapshot functionality for the filesystem.
+        fastremove: true # Enables the fast remove feature for the filesystem, which speeds up deletion of large directories.
